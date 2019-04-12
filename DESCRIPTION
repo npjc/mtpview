@@ -1,0 +1,19 @@
+Package: mtpview
+Type: Package
+Title: Easily view microtitre plate data.
+Version: 0.0.2
+Authors@R: person("Nicolas", "Coutin", , "nicolas.coutin@gmail.com", c("aut", "cre"), comment = c(ORCID = "0000-0001-9336-226X"))
+Maintainer: Nicolas Coutin <nicolas.coutin@gmail.com>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+URL: https://github.com/npjc/mtpview
+BugReports: https://github.com/npjc/mtpview/issues
+Encoding: UTF-8
+LazyData: true
+Imports: 
+    tibble,
+    dplyr,
+    r2d3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 6.1.1
