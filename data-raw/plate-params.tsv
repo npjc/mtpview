@@ -1,4 +1,4 @@
-n_wells	n_rows	n_cols	cx_shift	cy_shift	well_center_to_center	well_radius	width	height
+n_wells	nrow	ncol	cx_shift	cy_shift	well_c2c	well_radius	width	height
 1536	34	48	11.01	7.87	2	0.85	127.76	85.48
 384	16	24	12.13	8.99	4.5	1.85	127.76	85.48
 96	8	12	14.38	11.24	9	3.48	127.76	85.48

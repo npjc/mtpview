@@ -17,23 +17,30 @@ mtp_ggplot <- function(tbl,
                     well_var = 'well',
                     well_fill_var = NULL,
                     well_alpha_var = NULL,
-                    draw_lineplots = FALSE) {
-    n_wells <- nrow(tbl)
-    stopifnot(n_wells %in% mtp_params_data$n_wells)
-    plot_data <- make_mtp_tbl(n_wells = n_wells, wells_as = "rects")
-    plot_data$wells <- dplyr::left_join(tibble::as_tibble(plot_data$wells), tbl, by = c('well_label' = well_var))
+                    draw_lineplots = FALSE,
+                    n_wells = nrow(tbl),
+                    wells_as = "rects",
+                    label_wells = FALSE) {
+    p <- dplyr::filter(mtp_params_data, n_wells == !!n_wells)
+    stopifnot(nrow(p) == 1)
+    plot_data <- make_mtp_tbl(p$nrow, p$ncol, wells_as = wells_as)
+    plot_data$wells <- dplyr::left_join(plot_data$wells, tbl, by = c('label' = well_var))
 
 
     p <- ggplot() +
         # plate footprint and well border
-        geom_rect(data = plot_data$footprint, aes(xmin = x, ymin = y, xmax = x + width, ymax = y + height), color = "black", fill = "grey95") +
+        geom_rect(data = plot_data$footprint,
+                  mapping = aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), color = "black", fill = "grey95") +
         geom_path(data = plot_data$well_border, aes(x = x, y = y), color = "black") +
         # wells
-        geom_rect(data = plot_data$wells, aes_string(xmin = 'x', ymin = 'y', xmax = 'x + width', ymax = 'y + height',
+        geom_rect(data = plot_data$wells, aes_string(xmin = 'xmin',
+                                                     xmax = 'xmax',
+                                                     ymin = 'ymin',
+                                                     ymax = 'ymax',
                                                      fill = well_fill_var, alpha = well_alpha_var), color = "black") +
         # labels
-        geom_text(data = plot_data$row_labels, aes(x = x, y = y, label = text), vjust = 0.5, size = 4, color = "grey50") +
-        geom_text(data = plot_data$col_labels, aes(x = x, y = y, label = text), vjust = 0.25, size = 4, color = "grey50")
+        geom_text(data = plot_data$row_labels, aes(x = x, y = y, label = label), vjust = 0.5, size = 4, color = "grey50") +
+        geom_text(data = plot_data$col_labels, aes(x = x, y = y, label = label), vjust = 0.25, size = 4, color = "grey50")
 
     if (draw_lineplots) {
         well_lineplot_data <-  dplyr::select(plot_data$wells, id, well_label, x,y,width,height, data)
@@ -47,6 +54,9 @@ mtp_ggplot <- function(tbl,
         well_lineplot_data <- dplyr::ungroup(well_lineplot_data)
 
         p <- p + geom_line(data = well_lineplot_data, aes(x = scaled_x, y = scaled_y, group = id))
+    }
+    if (label_wells) {
+        p <- p + geom_text(data = plot_data$wells, aes(x = x, y = y, label = label), vjust = 1, hjust = 0, size = 4)
     }
     p +
         scale_y_reverse() +
@@ -67,17 +77,15 @@ mtp_ggplot <- function(tbl,
 #'
 #' @examples
 #'   make_microwell_plate_tbl(384, wells_as = "rects")
-make_mtp_tbl <- function(n_wells, wells_as) {
-    p <- dplyr::filter(mtp_params_data, n_wells == !!n_wells)
+make_mtp_tbl <- function(nrow, ncol, wells_as = "rects") {
+    p <- dplyr::filter(mtp_params_data, nrow == !!nrow, ncol == !!ncol)
 
     footprint <- mtp_footprint(p$width, p$height)
     well_border <- mtp_notched_border(p$width, p$height)
-    wells <- mtp_wells(p$n_wells, p$n_rows, p$n_cols, p$cx_shift, p$cy_shift,
-                         p$well_center_to_center, p$well_radius, wells_as)
-    row_labels <- mtp_row_labels(p$n_rows, p$cx_shift, p$cy_shift,
-                                   p$well_center_to_center)
-    col_labels <- mtp_col_labels(p$n_cols, p$cx_shift, p$cy_shift,
-                                   p$well_center_to_center)
+    wells <- mtp_wells(p$nrow, p$ncol, p$cx_shift, p$cy_shift,
+                         p$well_c2c, p$well_radius, wells_as)
+    row_labels <- mtp_row_labels(p$nrow, p$cx_shift, p$cy_shift, p$well_c2c)
+    col_labels <- mtp_col_labels(p$ncol, p$cx_shift, p$cy_shift, p$well_c2c)
     list(plate = p,
          footprint = footprint,
          well_border = well_border,
@@ -89,22 +97,15 @@ make_mtp_tbl <- function(n_wells, wells_as) {
 
 #' Rounded rectangle of microtitreplate footprint from width and height
 #'
-#' @param w width in cm
-#' @param h height in cm
+#' @param w width in mm
+#' @param h height in mm
+#' @param r radius of circle used to round corners in mm
 #'
 #' @examples
 #'     mtp_footprint(127.76, 85.48)
-mtp_footprint <- function(w, h) {
-    r <- 3
-    tibble::tibble(element = "rect",
-                   class = "border",
-                   id = "plate-footprint",
-                   x = 0,
-                   y = 0,
-                   width = w,
-                   height = h,
-                   rx = r,
-                   ry = r)
+mtp_footprint <- function(w, h, r = 3) {
+    tibble::tibble(x = 0, y = 0, width = w, height = h, rx = r, ry = r,
+                   xmin = x, xmax = x + width, ymin = y, ymax = y + height)
 }
 
 #' Path for rectangle with notched border of microtitre plate.
@@ -134,9 +135,6 @@ mtp_notched_border <- function(w, h) {
               top_left_corner_notch_offset,
               start_point)
     tibble::tibble(
-        element = "path",
-        class = "border",
-        id = "plate-notched-border",
         x = unlist(lapply(l, `[`, 1)),
         y = unlist(lapply(l, `[`, 2))
     )
@@ -146,67 +144,40 @@ mtp_notched_border <- function(w, h) {
 #' plot elements for wells as rects or circles based on plate params.
 #' One row per well output.
 #'
-mtp_wells <- function(n_wells, n_rows, n_cols, cx_shift, cy_shift,
-                      well_center_to_center, well_radius, wells_as) {
-    fun <- switch(wells_as,
-                  "circles" = mtp_wells_circles,
-                  "rects" = mtp_wells_rects)
-    fun(n_wells, n_rows, n_cols, cx_shift, cy_shift, well_center_to_center,
-        well_radius)
+mtp_wells <- function(nrow, ncol, cx_shift, cy_shift,
+                      well_c2c, well_radius, wells_as) {
+    d <- mtp_wells_tbl(nrow, ncol)
+    centers <- tidyr::crossing(
+        cy = c(0, cumsum(rep.int(well_c2c, nrow - 1))) + cy_shift,
+        cx = c(0, cumsum(rep.int(well_c2c, ncol - 1))) + cx_shift
+    )
+
+    d <- dplyr::mutate(d, r = well_radius)
+    d <- dplyr::bind_cols(d, centers)
+
+    if (wells_as == 'rects') {
+        # switch to rounded rects if plate has > 96 wells
+        # left side:  x = cx - r, width = r*2
+        # top side: y = cy - r
+        d <- dplyr::transmute(d, id, label, row, col,
+                              x = cx - r, y = cy - r, width = r * 2, height = width,
+                              rx = r / 10, ry = r / 10)
+    }
+    dplyr::mutate(d, xmin = x, xmax = x + width, ymin = y, ymax = y + height)
 }
 
-
-#' @rdname mtp_wells
-mtp_wells_circles <- function(n_wells, n_rows, n_cols, cx_shift, cy_shift,
-                              well_center_to_center, well_radius) {
-    # center x and y for each well
-    cxs <- c(0, cumsum(rep.int(well_center_to_center, n_cols - 1))) + cx_shift
-    cys <- c(0, cumsum(rep.int(well_center_to_center, n_rows - 1))) + cy_shift
-    # fill the grid
-    d <- expand.grid(cx = cxs, cy = cys)
-    # add radius, class, id
-    d <- dplyr::mutate(d, element = "circle", class = "well",
-                       r = well_radius,
-                       id = paste0("well-", dplyr::row_number(r)))
-    d <- dplyr::select(d, element, class, id, cx, cy, r)
-    d
-}
-
-
-#' @rdname mtp_wells
-mtp_wells_rects <- function(n_wells, n_rows, n_cols, cx_shift, cy_shift,
-                            well_center_to_center, well_radius) {
-    d <- mtp_wells_circles(n_wells, n_rows, n_cols, cx_shift, cy_shift,
-                             well_center_to_center, well_radius)
-    # switch to rounded rects if plate has > 96 wells
-    # left side:  x = cx - r, width = r*2
-    # top side: y = cy - r
-    d <- dplyr::transmute(d, element = "rect", class = class, id = id,
-                          x = cx - r, y = cy - r, width = r * 2, height = width,
-                          rx = r / 10, ry = r / 10)
-    d <- dplyr::mutate(d, well_label = mtp_wells_from_dims(n_rows, n_cols))
-    d
-}
-
-mtp_row_labels <- function(n_rows, cx_shift, cy_shift, well_center_to_center) {
-    d <- tibble::tibble(
-        element = "text",
-        class = "label row-label",
+mtp_row_labels <- function(nrow, cx_shift, cy_shift, well_c2c) {
+    tibble::tibble(
         x = cx_shift / 2,
-        y = c(0, cumsum(rep.int(well_center_to_center, n_rows - 1))) + cy_shift,
-        text = LETTERS[seq_len(n_rows)]
+        y = c(0, cumsum(rep.int(well_c2c, nrow - 1))) + cy_shift,
+        label = row_labels(nrow)
     )
-
-    d
 }
 
-mtp_col_labels <- function(n_cols, cx_shift, cy_shift, well_center_to_center) {
-    d <- tibble::tibble(
-        element = "text",
-        class = "label col-label",
-        x = c(0, cumsum(rep.int(well_center_to_center, n_cols - 1))) + cx_shift,
+mtp_col_labels <- function(ncol, cx_shift, cy_shift, well_c2c) {
+    tibble::tibble(
+        x = c(0, cumsum(rep.int(well_c2c, ncol - 1))) + cx_shift,
         y = cy_shift / 2,
-        text = as.character(seq_len(n_cols))
+        label = as.character(seq_len(ncol))
     )
-    d
 }

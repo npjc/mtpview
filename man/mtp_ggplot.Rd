@@ -5,7 +5,8 @@
 \title{plot a microtitre plate ggplot style}
 \usage{
 mtp_ggplot(tbl, well_var = "well", well_fill_var = NULL,
-  well_alpha_var = NULL, draw_lineplots = FALSE)
+  well_alpha_var = NULL, draw_lineplots = FALSE, n_wells = nrow(tbl),
+  wells_as = "rects", label_wells = FALSE)
 }
 \arguments{
 \item{tbl}{table of data to operate on, one row per well.}

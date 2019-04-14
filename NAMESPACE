@@ -2,3 +2,4 @@
 
 export(mtp_ggplot)
 export(mtp_view)
+export(mtp_wells_tbl)

@@ -4,12 +4,14 @@
 \alias{mtp_footprint}
 \title{Rounded rectangle of microtitreplate footprint from width and height}
 \usage{
-mtp_footprint(w, h)
+mtp_footprint(w, h, r = 3)
 }
 \arguments{
-\item{w}{width in cm}
+\item{w}{width in mm}
 
-\item{h}{height in cm}
+\item{h}{height in mm}
+
+\item{r}{radius of circle used to round corners in mm}
 }
 \description{
 Rounded rectangle of microtitreplate footprint from width and height

@@ -10,12 +10,12 @@
 \item labels: row and column labels for the microwell plate, text elements.
 }}
 \usage{
-make_mtp_tbl(n_wells, wells_as)
+make_mtp_tbl(nrow, ncol, wells_as = "rects")
 }
 \arguments{
-\item{n_wells}{<int> number of wells}
-
 \item{wells_as}{<chr> "rects" or "circles"}
+
+\item{n_wells}{<int> number of wells}
 }
 \description{
 The idea here is to have a function that generates the following elements to represent a microplate:

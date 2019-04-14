@@ -2,19 +2,10 @@
 % Please edit documentation in R/mtp-ggplot.R
 \name{mtp_wells}
 \alias{mtp_wells}
-\alias{mtp_wells_circles}
-\alias{mtp_wells_rects}
 \title{plot elements for wells as rects or circles based on plate params.
 One row per well output.}
 \usage{
-mtp_wells(n_wells, n_rows, n_cols, cx_shift, cy_shift,
-  well_center_to_center, well_radius, wells_as)
-
-mtp_wells_circles(n_wells, n_rows, n_cols, cx_shift, cy_shift,
-  well_center_to_center, well_radius)
-
-mtp_wells_rects(n_wells, n_rows, n_cols, cx_shift, cy_shift,
-  well_center_to_center, well_radius)
+mtp_wells(nrow, ncol, cx_shift, cy_shift, well_c2c, well_radius, wells_as)
 }
 \description{
 plot elements for wells as rects or circles based on plate params.
