@@ -15,8 +15,13 @@ wells <- crossing(row = LETTERS[1:8], col = 1:12L) %>%
 
 mtp_example1 <- crossing(drug = drug, conc = conc) %>%
     arrange(desc(conc), drug) %>%
+    # if there is no drug the concentration is 0, not crossing.
+    mutate(conc = if_else(is.na(drug), 0, conc)) %>%
     mutate(well = wells) %>%
     select(well, drug, conc)
+
+mtp_example1 %>%
+    filter(is.na(drug))
 
 usethis::use_data(mtp_example1, overwrite = TRUE)
 
