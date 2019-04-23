@@ -39,3 +39,19 @@ mtp_example2 <- file.path('data-raw', 'example-data2.tsv') %>%
     mutate(cond = factor(cond, levels = c("in focus", "ref", "blank", "trt")))
 
 usethis::use_data(mtp_example2, overwrite = TRUE)
+
+
+# example 3 ---------------------------------------------------------------
+
+mtp_example3 <- file.path('data-raw', 'example-data3.tsv') %>%
+    read_tsv(col_types = 'cccddd') %>%
+    nest(runtime, measure)
+
+usethis::use_data(mtp_example3, overwrite = TRUE)
+
+
+
+# example 4 ---------------------------------------------------------------
+
+mtp_example4 <- read_rds(file.path('data-raw', 'example-data4.rds'))
+usethis::use_data(mtp_example4, overwrite = TRUE)
