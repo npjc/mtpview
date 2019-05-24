@@ -2,15 +2,12 @@
 title: "Easily view your microtitre plate data"
 output: 
     - github_document
-    - html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r, echo=FALSE}
-suppressPackageStartupMessages(library(tidyverse))
-library(mtpview)
-mtp_example1
-```
+You probably want [mtpview1][]. This pkg has lower level grid-related things. mtpview1, which contains the higher level ggplot2-based interface, will be merged back into here when possible.
+
+[mtpview1]: http://github.com/npjc/mtpview1
