@@ -35,7 +35,7 @@ col_labels_grob <- function(l, vp = NULL, name = 'col_labels') {
     y_well_boundary <- min(l[['y']] - l[['height']] / 2) * (2/3)
     y <-  min(l[['y']] - l[['height']] / 2) * (2/3)
     y <- rep.int(1 - y, n)
-    label <- col_labels(seq_len(n))
+    label <- mtputils::col_labels(n = n)
     grid::textGrob(label = label, x = x, y = y,
                    gp = get_gpars(l), vp = vp, name = name)
 }
@@ -45,7 +45,7 @@ row_labels_grob <- function(l, vp = NULL, name = 'row_labels') {
     n <- length(y)
     x <- min(l[['x']] - l[['width']] / 2) * (2/3)
     x <- rep.int(x, n)
-    label <- row_labels(seq_len(n))
+    label <- mtputils::row_labels(n = n)
     grid::textGrob(label = label, x = x, y = y,
                    gp = get_gpars(l), vp = vp, name = name)
 }
@@ -127,6 +127,11 @@ mtp_96 <- function(data = NULL, vp = NULL, gp = NULL, draw = TRUE, ipad = 0.1, o
                 data = data, vp = vp, gp = gp, draw = draw)
 }
 #' @export
+mtp_100 <- function(data = NULL, vp = NULL, gp = NULL, draw = TRUE, ipad = 0.1, opad = 0.7) {
+    mtp_generic(nrow = 10, ncol = 10, ipad = ipad, opad = opad,
+                data = data, vp = vp, gp = gp, draw = draw)
+}
+#' @export
 mtp_384 <- function(data = NULL, vp = NULL, gp = NULL, draw = TRUE, ipad = 0.1, opad = 1.2) {
     mtp_generic(nrow = 16, ncol = 24, ipad = ipad, opad = opad,
                 data = data, vp = vp, gp = gp, draw = draw)
@@ -156,6 +161,8 @@ mtp_fxn_from_wells <- function(x) {
         return(mtp_48)
     if (all(x %in% .well_labels[['96']]))
         return(mtp_96)
+    if (all(x %in% .well_labels[['100']]))
+        return(mtp_100)
     if (all(x %in% .well_labels[['384']]))
         return(mtp_384)
     # if (all(x %in% .well_labels[['1536']]))

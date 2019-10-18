@@ -2,6 +2,7 @@
 
 export(geom_plate)
 export(geom_well_rect)
+export(mtp_100)
 export(mtp_384)
 export(mtp_48)
 export(mtp_96)
